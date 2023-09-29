@@ -1,107 +1,101 @@
 #include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <algorithm>
+#include <mysql.h>
+#include <mysqld_error.h>
 
 using namespace std;
 
-struct Contact {
-    string firstName;
-    string lastName;
-    string address;
-    string phoneNumber;
-};
+char HOST[] = "localhost";
+char USER[] = "root";
+char PASS[] = "SillyPassword";
 
-vector<Contact> contacts; // Store contacts in a vector
+int main() 
+{
+	MYSQL* obj;
+	
+	char Name[30];
+	int Age;
+	char Address[30]; 
 
-// Function prototypes
-void addContact();
-void viewContacts();
+	bool ProgramIsOpened = true;
+	int answer;
+	
+	char* consult;
+	char* sentence;
+	string sentence_aux;
+	
+//---------------------------------------------------------------------------
+// Connection 
 
+	if (!(obj = mysql_init(0)))
+	{
+		cout << "ERROR: MySQL object could not be created." << endl;
+	}
+	else
+	{
+		if(!mysql_real_connect(obj, "localhost", "root", "chittu", "software", 3306, NULL, 0))
+		{
+			cout << "ERROR: Some database info is wrong or do not exist." << endl;
+			cout << mysql_error(obj) << endl;
+	    }
+	    else
+	    {
+	    	cout << "Logged in." << endl << endl;
+	    	while(ProgramIsOpened)
+	    	{
+	    		cout << "Name - ";
+	    		cin.getline(Name, 30, '\n');
+				 
+	    		cout << "Age - ";
+	    		cin >> Age;
+	    		cin.ignore(100, '\n');
+	    		
+	    		cout << "Address - ";
+	    		cin.getline(Address, 30, '\n');
+	    		cout << endl;
+	    		
+	    		// Setting update 
+	    		
+	    		sentence_aux = "INSERT INTO software(Name, Age, Address) VALUES ('%s', '%d', '%s')";
+	    		sentence = new char [sentence_aux.length() + 1];
+	    		strcpy(sentence, sentence_aux.c_str());
+	    		
+	    		consult = new char[strlen(sentence) + strlen(Name) + sizeof(Age) + strlen(Address)];
+	    		sprintf(consult,sentence,Name,Age,Address);
+	    		
+	    		// Make our attempt 
+	    		if(mysql_ping(obj))
+				{
+					cout << "ERROR: Imposible to connect." << endl;
+					cout << mysql_error(obj) << endl;
+				}
+				if(mysql_query(obj, consult))
+				{
+					cout << "ERROR: " << mysql_error(obj) << endl;
+					rewind(stdin);
+					getchar();
+				}
+				else
+				{
+					cout << "Info added correctly." << endl;
+				}
+				mysql_store_result(obj);
 
-bool compareContacts(const Contact &a, const Contact &b) {
-    return a.firstName < b.firstName;
+				cout << endl << "Another?" << endl;
+				cout << "[1]: Yes" << endl;
+				cout << "[0]: N0" << endl;
+				cout << "Answer: ";
+				cin >> answer;
+				cin.ignore(100, '\n');
+				if (answer == 0)	
+				{
+					ProgramIsOpened = false;	
+				}
+				cout << endl;	    		
+			}
+		}
+	}
+	
+	cout << "BYE!" << endl;
+	return 0;
 }
 
-int main() {
-    system("cls");
-    bool run = true;
-    do {
-        int option;
-        cout << "-----------------User Address Book------------------------" << endl;
-        cout << "\n";
-        cout << "What would you like to do?" << endl;
-        cout << "1.) Add Contact" << endl;
-        cout << "2.) Edit Contact" << endl;
-        cout << "3.) Delete Contact" << endl;
-        cout << "4.) View All Contacts" << endl;
-        cout << "5.) Search Address Book" << endl;
-        cout << "6.) Exit" << endl
-             << endl;
-        cout << "Choose an option: ";
-        cin >> option;
-        cin.ignore();
-        switch (option) {
-            case 1:
-                addContact();
-                break;
-            case 2:
-          
-                break;
-            case 3:
-          
-                break;
-            case 4:
-                viewContacts();
-                break;
-            case 5:
-            
-                break;
-            case 6:
-                run = false;
-                break;
-            default:
-                cout << "Please choose between 1 to 6" << endl;
-        }
-    } while (run);
-    cout << "Program Terminated";
-}
-
-void addContact() {
-    system("cls");
-    Contact contact;
-    cout << "----------------------Address Book-----------------------------" << endl << endl;
-    cout << "Enter 'quit' at First name to quit" << endl << endl;
-    cout << "Enter First Name: ";
-    getline(cin, contact.firstName);
-    if (contact.firstName == "quit") {
-        return;
-    }
-    cout << "Enter Last Name: ";
-    getline(cin, contact.lastName);
-    cout << "Enter Address: ";
-    getline(cin, contact.address);
-    cout << "Enter Contact Number: ";
-    getline(cin, contact.phoneNumber);
-
-    contacts.push_back(contact); // Add the contact to the vector
-    sort(contacts.begin(), contacts.end(), compareContacts); // Sort contacts by first name
-    system("pause");
-    system("cls");
-}
-
-void viewContacts() {
-    system("cls");
-    cout << "Entry #" << setw(17) << "First Name" << setw(23) << "Last Name" << setw(23) << "Address" << setw(29) << "Contact" << endl << endl;
-    for (size_t i = 0; i < contacts.size(); ++i) 
-    {
-        cout << setw(3) << i + 1 << setw(18) << contacts[i].firstName << setw(25) << contacts[i].lastName << setw(25) << contacts[i].address << setw(30) << contacts[i].phoneNumber << endl;
-    }
-    cout << endl;
-    system("pause");
-    system("cls");
-}
-
-// Implement the remaining functions (searchContact, editContact, deleteContact) as needed.
