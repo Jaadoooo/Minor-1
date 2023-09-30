@@ -9,7 +9,23 @@ char USER[] = "root";
 char PASS[] = "SillyPassword";
 
 int main() 
-{
+{	
+	
+	string us = "chitrak";
+	string pa = "aseri123";
+	string username, password;
+    cout << "Enter username: ";
+    cin >> username;
+    cout << "Enter password: ";
+    cin >> password;
+
+    if (username != us || password != pa)
+    {
+        cout << "Authentication failed. Exiting..." << endl;
+        return 1; // Exit the program
+    }
+    
+	
 	MYSQL* obj;
 	
 	char Name[30];
@@ -32,27 +48,29 @@ int main()
 	}
 	else
 	{
-		if(!mysql_real_connect(obj, "localhost", "root", "chittu", "software", 3306, NULL, 0))
+		if(!mysql_real_connect(obj, "localhost", "root", "chitttu", "software", 3306, NULL, 0))
 		{
 			cout << "ERROR: Some database info is wrong or do not exist." << endl;
 			cout << mysql_error(obj) << endl;
 	    }
 	    else
-	    {
-	    	cout << "Logged in." << endl << endl;
+	    {	
+	    	cout << "LogIn Successful." << endl << endl;
+
 	    	while(ProgramIsOpened)
 	    	{
 	    		cout << "Name - ";
-	    		cin.getline(Name, 30, '\n');
-				 
-	    		cout << "Age - ";
-	    		cin >> Age;
-	    		cin.ignore(100, '\n');
-	    		
-	    		cout << "Address - ";
-	    		cin.getline(Address, 30, '\n');
-	    		cout << endl;
-	    		
+				cin >> Name;
+				
+				cout << "Age - ";
+				cin >> Age;
+				cin.ignore(); 
+				
+				cout << "Address - ";
+				cin.ignore(); 
+				cin.getline(Address, 30, '\n');
+				cout << endl;
+
 	    		// Setting update 
 	    		
 	    		sentence_aux = "INSERT INTO software(Name, Age, Address) VALUES ('%s', '%d', '%s')";
