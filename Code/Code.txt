@@ -7,6 +7,7 @@
 #include <string>
 #include <ctime>
 #include <limits>
+#include <iomanip> 
 
 
 
@@ -18,9 +19,11 @@ char USER[] = "root";
 char PASS[] = "SillyPassword";
 
 struct Entry {
+	string id;
     string name;
-    int age;
+    string age;
     string address;
+    string disease;
 };
 
 int compareEntries(const Entry &a, const Entry &b) {
@@ -118,10 +121,12 @@ int main() {
 	
 	
     MYSQL *obj;
-
-    char Name[30];
-    int Age;
-    char Address[30];
+	
+	char ID[100];
+    char Name[100];
+    char Age[100];
+    char Address[100];
+    char Disease[100];
 
     bool ProgramIsOpened = true;
     int answer;
@@ -167,33 +172,46 @@ int main() {
                     	case 1: {
 								    system("cls");
 								    cout << "Add an Entry" << endl;
-								    
-								    // Implement your code for adding an entry here
+								
+								    cout << "ID - ";
+								    cin >> ID;
+								
 								    cout << "Name - ";
 								    cin >> Name;
-								
+													
 								    cout << "Age - ";
 								    cin >> Age;
-									cin.ignore(numeric_limits<streamsize>::max(), '\n');
-								
+																
 								    cout << "Address - ";
-								  
-								    cin.getline(Address, 30, '\n');
-								    cout << endl;
+								    cin >> Address;
+																	
+								    cout << "Disease - ";
+									cin >> Disease;
+																	    
+									cout << endl;
+								    
+								    
+								    
+								    
 								
 								    // Encrypt the user's input
+								    string encryptedID = encryptData(ID);
 								    string encryptedName = encryptData(Name);
-								    int encryptedAge = Age;  // No encryption for age in this example
+								    string encryptedAge = encryptData(Age);  
 								    string encryptedAddress = encryptData(Address);
+								    string encryptedDisease = encryptData(Disease);  
+
+								    
+								    
+								    
 								
-								    sentence_aux = "INSERT INTO software(Name, Age, Address) VALUES ('%s', '%d', '%s')";
+								    sentence_aux = "INSERT INTO software(ID, Name, Age, Address, Disease) VALUES ('%s', '%s', '%s', '%s', '%s')";
 								    sentence = new char[sentence_aux.length() + 1];
 								    strcpy(sentence, sentence_aux.c_str());
 								
-								    size_t bufferSize = sentence_aux.length() + encryptedName.length() + sizeof(encryptedAge) + encryptedAddress.length();
+									size_t bufferSize = sentence_aux.length() + encryptedID.length() + encryptedName.length() + encryptedAge.length() + encryptedAddress.length() + encryptedDisease.length();
 									consult = new char[bufferSize + 1]; // +1 for null-terminator
-									snprintf(consult, bufferSize + 1, sentence_aux.c_str(), encryptedName.c_str(), encryptedAge, encryptedAddress.c_str());
-								
+									snprintf(consult, bufferSize + 1, sentence_aux.c_str(), encryptedID.c_str(), encryptedName.c_str(), encryptedAge.c_str(), encryptedAddress.c_str(), encryptedDisease.c_str());								
 								    if (mysql_ping(obj)) {
 								        cout << "ERROR: Impossible to connect." << endl;
 								        cout << mysql_error(obj) << endl;
@@ -217,7 +235,7 @@ int main() {
                 
                     case 2: 
 					{
-					    const char *selectQuery = "SELECT Name, Age, Address FROM software";
+					    const char *selectQuery = "SELECT ID, Name, Age, Address, Disease FROM software";
 					    if (mysql_query(obj, selectQuery)) {
 					        cout << "ERROR: " << mysql_error(obj) << endl;
 					    } else {
@@ -230,9 +248,11 @@ int main() {
 					            while ((row = mysql_fetch_row(result))) {
 					                Entry entry;
 					                // Decrypt the data and store it in the entry struct
-					                entry.name = decryptData(row[0]);
-					                entry.age = atoi(row[1]);
-					                entry.address = decryptData(row[2]);
+					                entry.id = decryptData(row[0]);
+					                entry.name = decryptData(row[1]);
+					                entry.age = decryptData(row[2]);
+					                entry.address = decryptData(row[3]);
+					                entry.disease = decryptData(row[4]); // Assuming Disease is a string
 					                entries.push_back(entry);
 					            }
 					
@@ -240,11 +260,11 @@ int main() {
 					            quickSort(entries, 0, entries.size() - 1);
 					            system("cls");
 					
-					            // Display the sorted data
-					            cout << "Name\t\tAge\tAddress" << endl;
+					            // Display the sorted data, including the new fields
+					            cout << setw(5) << "ID" << setw(15) << "Name" << setw(10) << "Age" << setw(20) << "Address" << setw(20) << "Disease" << endl<<endl;
 					            for (size_t i = 0; i < entries.size(); ++i) {
 					                const Entry &entry = entries[i];
-					                cout << entry.name << "\t\t" << entry.age << "\t" << entry.address << endl;
+					                cout << setw(5) << entry.id << setw(15) << entry.name << setw(10) << entry.age << setw(20) << entry.address << setw(20) << entry.disease << endl;
 					            }
 					
 					            char input;
@@ -266,6 +286,7 @@ int main() {
 					
 					    break;
 					}
+
 
                 
                         
