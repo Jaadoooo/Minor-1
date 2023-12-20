@@ -1,0 +1,169 @@
+// No Binary Search 
+#include <iostream>
+#include <mysql.h>
+#include <mysqld_error.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <vector>
+#include <string>
+#include <ctime>
+
+
+
+
+using namespace std;
+
+char HOST[] = "localhost";
+char USER[] = "root";
+char PASS[] = "SillyPassword";
+
+struct Entry {
+    string name;
+    int age;
+    string address;
+};
+
+int compareEntries(const Entry &a, const Entry &b) {
+    return a.name.compare(b.name);
+}
+
+void quickSort(vector<Entry> &entries, int low, int high) {
+    if (low < high) {
+        int pivot = low;
+        int i = low;
+        int j = high;
+
+        while (i < j) {
+            while (compareEntries(entries[i], entries[pivot]) <= 0 && i < high) {
+                i++;
+            }
+            while (compareEntries(entries[j], entries[pivot]) > 0) {
+                j--;
+            }
+            if (i < j) {
+                swap(entries[i], entries[j]);
+            }
+        }
+
+        swap(entries[pivot], entries[j]);
+
+        quickSort(entries, low, j - 1);
+        quickSort(entries, j + 1, high);
+    }
+}
+
+void delay(int seconds) {
+    clock_t start_time = clock();
+    clock_t wait_time = seconds * CLOCKS_PER_SEC;
+
+    while (clock() < start_time + wait_time) {
+        // Busy-wait until the desired time has passed
+    }
+}
+
+int main() {
+	
+
+
+	
+    MYSQL *obj;
+
+    char Name[30];
+    int Age;
+    char Address[30];
+
+    bool ProgramIsOpened = true;
+    int answer;
+
+    char *consult;
+    char *sentence;
+    string sentence_aux;
+
+
+//---------------------------------------------------------------------------
+// Connection 
+
+    if (!(obj = mysql_init(0)) || !mysql_real_connect(obj, HOST, USER, "chittu", "software", 3306, NULL, 0)) {
+        cout << "ERROR: MySQL connection failed." << endl;
+        if (obj) {
+            cout << mysql_error(obj) << endl;
+        }
+        return 1;
+    } else {
+        cout << "LogIn Successful." << endl
+             << endl;
+        system("cls");
+        
+
+
+        while (ProgramIsOpened) {
+            int choice;
+
+            do {
+                cout << "Choose an option:" << endl;
+                cout << "1) Add an Entry" << endl;
+                cout << "2) View Entries" << endl;
+				cout << "3) Search Entries" << endl;
+                cout << "4) Delete Entries" << endl;
+                cout << "5) Edit Entries" << endl;
+                cout << "0) Exit" << endl<<endl;
+                cout << "Enter your choice: ";
+                cin >> choice;
+
+                switch (choice) {
+                    case 1:
+                        system("cls");
+                        cout << "Add an Entry" << endl;
+                        // Implement your code for adding an entry here
+                        cout << "Name - ";
+                        cin >> Name;
+
+                        cout << "Age - ";
+                        cin >> Age;
+                        cin.ignore();
+
+                        cout << "Address - ";
+                        cin.ignore();
+                        cin.getline(Address, 30, '\n');
+                        cout << endl;
+
+                        sentence_aux = "INSERT INTO software(Name, Age, Address) VALUES ('%s', '%d', '%s')";
+                        sentence = new char[sentence_aux.length() + 1];
+                        strcpy(sentence, sentence_aux.c_str());
+
+                        consult = new char[strlen(sentence) + strlen(Name) + sizeof(Age) + strlen(Address)];
+                        sprintf(consult, sentence, Name, Age, Address);
+
+                        if (mysql_ping(obj)) {
+                            cout << "ERROR: Imposible to connect." << endl;
+                            cout << mysql_error(obj) << endl;
+                        }
+                        if (mysql_query(obj, consult)) {
+                            cout << "ERROR: " << mysql_error(obj) << endl;
+                            rewind(stdin);
+                            getchar();
+                        } else {
+                            cout << "Info added succesfully." << endl;
+                            delay(2);
+                            system("cls");
+                        }
+                        mysql_store_result(obj);
+
+                        break;
+                    
+                        
+                        
+                        
+                    	default:
+                        cout << "Invalid choice. Please select a valid option." << endl;
+                        break;
+                }
+            } while (choice != 0);
+
+            return 0;
+        }
+    }
+
+    return 0;
+}
+
