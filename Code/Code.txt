@@ -1,5 +1,3 @@
-// Encrypted working fine
-
 #include <iostream>
 #include <mysql.h>
 #include <mysqld_error.h>
@@ -8,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <ctime>
+#include <limits>
 
 
 
@@ -70,16 +69,16 @@ string encryptData(const string& data)
     return encryptedData;
 }
 
-/*
+
 string decryptData(const string& data) 
 {
-    string encryptedData = data;
+    string decryptedData = data;
     for (size_t i = 0; i < data.length(); ++i) {
-        encryptedData[i] = data[i] - 1;
+        decryptedData[i] = data[i] - 1;
     }
     return decryptedData;
 }
-*/
+
 
 
 int main() {
@@ -110,6 +109,13 @@ int main() {
 
 		*/
 
+
+
+
+	
+	
+	
+	
 	
     MYSQL *obj;
 
@@ -161,16 +167,17 @@ int main() {
                     	case 1: {
 								    system("cls");
 								    cout << "Add an Entry" << endl;
+								    
 								    // Implement your code for adding an entry here
 								    cout << "Name - ";
 								    cin >> Name;
 								
 								    cout << "Age - ";
 								    cin >> Age;
-								    cin.ignore();
+									cin.ignore(numeric_limits<streamsize>::max(), '\n');
 								
 								    cout << "Address - ";
-								    cin.ignore();
+								  
 								    cin.getline(Address, 30, '\n');
 								    cout << endl;
 								
@@ -183,8 +190,9 @@ int main() {
 								    sentence = new char[sentence_aux.length() + 1];
 								    strcpy(sentence, sentence_aux.c_str());
 								
-								    consult = new char[strlen(sentence) + encryptedName.length() + sizeof(encryptedAge) + encryptedAddress.length()];
-								    sprintf(consult, sentence, encryptedName.c_str(), encryptedAge, encryptedAddress.c_str());
+								    size_t bufferSize = sentence_aux.length() + encryptedName.length() + sizeof(encryptedAge) + encryptedAddress.length();
+									consult = new char[bufferSize + 1]; // +1 for null-terminator
+									snprintf(consult, bufferSize + 1, sentence_aux.c_str(), encryptedName.c_str(), encryptedAge, encryptedAddress.c_str());
 								
 								    if (mysql_ping(obj)) {
 								        cout << "ERROR: Impossible to connect." << endl;
@@ -207,117 +215,117 @@ int main() {
 						}
                         
                 
-                    case 2:
-                        // Implement your code for viewing entries here
-                        {
-                            const char *selectQuery = "SELECT Name, Age, Address FROM software";
-                            if (mysql_query(obj, selectQuery)) {
-                                cout << "ERROR: " << mysql_error(obj) << endl;
-                            } else {
-                                MYSQL_RES *result = mysql_store_result(obj);
+                    case 2: 
+					{
+					    const char *selectQuery = "SELECT Name, Age, Address FROM software";
+					    if (mysql_query(obj, selectQuery)) {
+					        cout << "ERROR: " << mysql_error(obj) << endl;
+					    } else {
+					        MYSQL_RES *result = mysql_store_result(obj);
+					
+					        if (result) {
+					            vector<Entry> entries;
+					
+					            MYSQL_ROW row;
+					            while ((row = mysql_fetch_row(result))) {
+					                Entry entry;
+					                // Decrypt the data and store it in the entry struct
+					                entry.name = decryptData(row[0]);
+					                entry.age = atoi(row[1]);
+					                entry.address = decryptData(row[2]);
+					                entries.push_back(entry);
+					            }
+					
+					            // Sort the entries alphabetically by name
+					            quickSort(entries, 0, entries.size() - 1);
+					            system("cls");
+					
+					            // Display the sorted data
+					            cout << "Name\t\tAge\tAddress" << endl;
+					            for (size_t i = 0; i < entries.size(); ++i) {
+					                const Entry &entry = entries[i];
+					                cout << entry.name << "\t\t" << entry.age << "\t" << entry.address << endl;
+					            }
+					
+					            char input;
+					            cout << "\nPress C to continue: ";
+					            cin >> input;
+					
+					            if (input == 'c' || input == 'C') {
+					                cout << "" << endl;
+					                system("cls");
+					            } else {
+					                return 0; // Exit the program
+					            }
+					
+					            mysql_free_result(result);
+					        } else {
+					            cout << "No data found." << endl;
+					        }
+					    }
+					
+					    break;
+					}
 
-                                if (result) {
-                                    vector<Entry> entries;
-
-                                    MYSQL_ROW row;
-                                    while ((row = mysql_fetch_row(result))) {
-                                        Entry entry;
-                                        entry.name = row[0];
-                                        entry.age = atoi(row[1]);
-                                        entry.address = row[2];
-                                        entries.push_back(entry);
-                                    }
-
-                                    // Sort the entries alphabetically by name
-                                    quickSort(entries, 0, entries.size() - 1);
-									system("cls");
-									
-                                    // Display the sorted data
-                                    cout << "Name\t\tAge\tAddress" << endl;
-                                    for (size_t i = 0; i < entries.size(); ++i) {
-									    const Entry &entry = entries[i];
-									    cout << entry.name << "\t\t" << entry.age << "\t" << entry.address << endl;
-									    
-									    
-
-									    
-									}
-									
-									char input;
-										cout << "\n\nPress C to continue: ";
-										cin >> input;
-										
-										if (input == 'c' || input == 'C') {
-										    cout << "" << endl;
-										    system("cls");
-										} else {
-										    return 0; // Exit the program
-										}
-
-
-                                    mysql_free_result(result);
-                                } else {
-                                    cout << "No data found." << endl;
-                                }
-                            }
-                        }
-
-                        break;
                 
                         
                     case 3:
-                        
-						{
-						    string searchName;
-						    cout << "Enter the name to search for: ";
-						    cin.ignore(); // Clear any remaining newline character
-						    getline(cin, searchName); // Read the name with spaces
-						
-						    // Prepare the SQL query to search for entries by name
-						    string selectQuery = "SELECT Name, Age, Address FROM software WHERE Name = '" + searchName + "'";
-						    
-						    if (mysql_query(obj, selectQuery.c_str())) 
-							{
-						        cout << "ERROR: " << mysql_error(obj) << endl;
-						    } 
-							else 
-							{
-						        MYSQL_RES *result = mysql_store_result(obj);
-						
-						        if (result) 
-								{
-						            cout << "Name\t\tAge\tAddress" << endl;
-						            MYSQL_ROW row;
-						
-						            // Loop through the results and display them
-						            while ((row = mysql_fetch_row(result))) 
-									{
-						                cout << row[0] << "\t\t" << row[1] << "\t" << row[2] << endl;
-						            }
-						
-						            mysql_free_result(result);
-						        } 
-								else 
-								{
-						            cout << "No data found for " << searchName << endl;
-						        }
-						    }
-						
-						    char input;
-						    cout << "\nPress C to continue: ";
-						    cin >> input;
-						
-						    if (input == 'c' || input == 'C') 
-							{
-						        cout << "" << endl;
-						        system("cls");
-						    } 
-							else 
-							{
-						        return 0; // Exit the program
-						    }
-						    break;
-						}
+					{
+					    string searchName;
+					    cout << "Enter the name to search for: ";
+					    cin.ignore(); // Clear any remaining newline character
+					    getline(cin, searchName); // Read the name with spaces
+					
+					    // Encrypt the search name
+					    string encryptedSearchName = encryptData(searchName);
+					
+					    // Prepare the SQL query to search for entries by encrypted name
+					    string selectQuery = "SELECT Name, Age, Address FROM software WHERE Name = '" + encryptedSearchName + "'";
+					
+					    if (mysql_query(obj, selectQuery.c_str()))
+					    {
+					        cout << "ERROR: " << mysql_error(obj) << endl;
+					    }
+					    else
+					    {
+					        MYSQL_RES *result = mysql_store_result(obj);
+					
+					        if (result)
+					        {
+					            cout << "Name\t\tAge\tAddress" << endl;
+					            MYSQL_ROW row;
+					
+					            // Loop through the results and display them
+					            while ((row = mysql_fetch_row(result)))
+					            {
+					                // Decrypt the data before displaying
+					                cout << decryptData(row[0]) << "\t\t" << row[1] << "\t" << decryptData(row[2]) << endl;
+					            }
+					
+					            mysql_free_result(result);
+					        }
+					        else
+					        {
+					            cout << "No data found for " << decryptData(searchName) << endl;
+					        }
+					    }
+					
+					    char input;
+					    cout << "\nPress C to continue: ";
+					    cin >> input;
+					
+					    if (input == 'c' || input == 'C')
+					    {
+					        cout << "" << endl;
+					        system("cls");
+					    }
+					    else
+					    {
+					        return 0; // Exit the program
+					    }
+					    break;
+					}
+
 
 					
                         
