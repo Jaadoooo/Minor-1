@@ -429,7 +429,77 @@ int main() {
 						
 
                         case 5:
-                        cout << "Exiting the program. Goodbye!" << endl;
+						{
+							string id;
+							string edit;
+							string column;
+							
+                        	system("cls");
+							cout << "Enter the ID which you want to edit - ";
+							cin.ignore(); // Clear any remaining newline character
+							getline(cin, id); // Read the name with spaces
+							
+							cout << "\nEnter the field which you want to edit\n";
+			                cout << "1) Name" << endl;
+							cout << "2) Age" << endl;
+			                cout << "3) Address" << endl;
+			                cout << "4) Disease" << endl << endl;
+			                cout << "Your choice - " ;
+			                cin >> column;
+			                
+			                switch (toupper(column[0]))
+						    {
+						    case '1':
+						        column = "Name";
+						        break;
+						    case '2':
+						        column = "Age";
+						        break;
+						    case '3':
+						        column = "Address";
+						        break;
+						    case '4':
+						        column = "Disease";
+						        break;
+						    default:
+						        cout << "Invalid choice. Exiting search." << endl;
+						        return 0;
+						    }	
+							
+							cout << "Enter the new Value - ";
+							cin >> edit;							
+							
+							string encryptedid = encryptData(id);
+							string newencrypted = encryptData(edit);
+							
+							
+							
+							
+					
+							// Prepare the SQL query to edit entries
+							string deleteQuery = "UPDATE software SET " + column + " = '" + newencrypted + "' WHERE ID = '" + encryptedid + "' ;" ;
+							
+							if (mysql_query(obj, deleteQuery.c_str()))
+							{
+							    cout << "ERROR: " << mysql_error(obj) << endl;
+							}
+							else
+							{
+							    if (mysql_affected_rows(obj) > 0)
+							    {	cout << endl << endl;
+							        cout << "Entry Edited Successfully! " << endl;
+							    }
+							    else
+							    {	cout << endl << endl;
+							        cout << "No data found for " << edit << endl;
+							    }
+							}
+							
+							delay(2);
+							system("cls");
+
+						}
+						
                         break;
                         
                         
