@@ -292,16 +292,55 @@ int main() {
                         
                     case 3:
 					{
-					    string searchName;
-					    cout << "Enter the name to search for: ";
+						system("cls");
+					    char searchFieldChoice;
+					    cout << "Search on the basis of " << endl;
+		                cout << "1) ID" << endl;
+		                cout << "2) Name" << endl;
+						cout << "3) Age" << endl;
+		                cout << "4) Address" << endl;
+		                cout << "5) Disease" << endl << endl;
+		                cout << "Your choice - " ;
+		                cin >> searchFieldChoice;
+					
+					    string searchValue;
+						system("cls");
+					    cout << "Enter the value to search for - ";
 					    cin.ignore(); // Clear any remaining newline character
-					    getline(cin, searchName); // Read the name with spaces
+					    getline(cin, searchValue); // Read the value with spaces
 					
-					    // Encrypt the search name
-					    string encryptedSearchName = encryptData(searchName);
+					    string columnName;
 					
-					    // Prepare the SQL query to search for entries by encrypted name
-					    string selectQuery = "SELECT Name, Age, Address FROM software WHERE Name = '" + encryptedSearchName + "'";
+					    // Determine the column name based on the user's choice
+					    switch (toupper(searchFieldChoice))
+					    {
+					    case '1':
+					        columnName = "ID";
+					        break;
+					    case '2':
+					        columnName = "Name";
+					        break;
+					    case '3':
+					        columnName = "Age";
+					        break;
+					    case '4':
+					        columnName = "Address";
+					        break;
+					    case '5':
+					        columnName = "Disease";
+					        break;
+					    default:
+					        cout << "Invalid choice. Exiting search." << endl;
+					        return 0;
+					    }
+					
+					    // Encrypt the search value
+					    string encryptedSearchValue = encryptData(searchValue);
+					
+					    // Prepare the SQL query to search for entries by the chosen field
+					    string selectQuery = "SELECT * FROM software WHERE " + columnName + " = '" + encryptedSearchValue + "'";
+
+
 					
 					    if (mysql_query(obj, selectQuery.c_str()))
 					    {
@@ -313,21 +352,21 @@ int main() {
 					
 					        if (result)
 					        {
-					            cout << "Name\t\tAge\tAddress" << endl;
+					            cout << "\n\nID\t\tName\t\tAge\tAddress\t\tDisease" << endl;
 					            MYSQL_ROW row;
 					
 					            // Loop through the results and display them
 					            while ((row = mysql_fetch_row(result)))
 					            {
 					                // Decrypt the data before displaying
-					                cout << decryptData(row[0]) << "\t\t" << row[1] << "\t" << decryptData(row[2]) << endl;
+					                cout << decryptData(row[0]) << "\t\t" << decryptData(row[1]) << "\t\t" << decryptData(row[2]) << "\t" << decryptData(row[3]) << "\t\t" << decryptData(row[4]) << "\t\t" << endl;
 					            }
 					
 					            mysql_free_result(result);
 					        }
 					        else
 					        {
-					            cout << "No data found for " << decryptData(searchName) << endl;
+					            cout << "No data found for " << decryptData(searchValue) << endl;
 					        }
 					    }
 					
@@ -355,13 +394,15 @@ int main() {
                         {
                         	string searchName;
                         	system("cls");
-							cout << "Enter the name to Delete - ";
+							cout << "Enter the ID to Delete - ";
 							
 							cin.ignore(); // Clear any remaining newline character
 							getline(cin, searchName); // Read the name with spaces
 							
+							string encrypted = encryptData(searchName);
+							
 							// Prepare the SQL query to search for entries by name
-							string deleteQuery = "DELETE FROM software WHERE Name = '" + searchName + "'" ;
+							string deleteQuery = "DELETE FROM software WHERE ID = '" + encrypted + "'" ;
 							
 							if (mysql_query(obj, deleteQuery.c_str()))
 							{
